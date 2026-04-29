@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { defaultLocale, locales } from '@/lib/i18n';
 import { getAdminStatus, normalizeAdminNextPath } from '@/lib/supabase/admin';
+import { getSupabasePublicKey, getSupabaseUrl } from '@/lib/supabase/ssr';
 
 function hasFileExtension(pathname: string) {
   return /\.[a-zA-Z0-9]+$/.test(pathname);
@@ -20,20 +21,20 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const url = getSupabaseUrl();
+    const publicKey = getSupabasePublicKey();
 
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/admin/login';
     loginUrl.searchParams.set('next', normalizeAdminNextPath(pathname));
 
-    if (!url || !anonKey) {
+    if (!url || !publicKey) {
       loginUrl.searchParams.set('error', 'config');
       return NextResponse.redirect(loginUrl);
     }
 
     const response = NextResponse.next();
-    const supabase = createServerClient(url, anonKey, {
+    const supabase = createServerClient(url, publicKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();

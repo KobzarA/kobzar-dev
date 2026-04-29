@@ -1,13 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getSupabasePublicKey, getSupabaseUrl } from './ssr';
 
 export const adminLoginPath = '/admin/login';
 
 export function hasPublicSupabaseEnv() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) && Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(getSupabaseUrl()) && Boolean(getSupabasePublicKey());
 }
 
 export function hasServiceSupabaseEnv() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(getSupabaseUrl()) && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export function normalizeAdminNextPath(input: string | null | undefined, fallback = '/admin') {

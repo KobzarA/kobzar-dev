@@ -24,7 +24,7 @@ Create `.env.local` (or set vars in Vercel) based on `.env.example`:
 
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred) or `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy)
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
 
 ### Supabase setup
