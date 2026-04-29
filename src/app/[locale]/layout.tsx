@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { locales, type Locale } from '@/lib/i18n';
 import { getTranslations } from '@/lib/translations';
+import { getSiteUrl } from '@/lib/site-url';
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -13,10 +14,9 @@ function coerceLocale(input: unknown): Locale {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale?: string | string[] }>;
+  params: { locale: string };
 }): Promise<Metadata> {
-  const raw = await params;
-  const locale = coerceLocale(Array.isArray(raw.locale) ? raw.locale[0] : raw.locale);
+  const locale = coerceLocale(params.locale);
   const t = getTranslations(locale);
 
   const titles: Record<Locale, string> = {
@@ -27,10 +27,7 @@ export async function generateMetadata({
     es: 'P&B Kobzar Dev | Desarrollo Full-Stack e Ingeniería DevOps',
   };
 
-  const metadataBase =
-    process.env.NEXT_PUBLIC_SITE_URL && process.env.NEXT_PUBLIC_SITE_URL.length > 0
-      ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-      : new URL('http://localhost:3000');
+  const metadataBase = new URL(getSiteUrl());
 
   return {
     metadataBase,

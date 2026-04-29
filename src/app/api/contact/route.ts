@@ -1,56 +1,66 @@
 import { NextResponse } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/server';
+import { hasServiceSupabaseEnv } from '@/lib/supabase/admin';
+import { validateContactPayload } from '@/lib/contact/validation';
 
-type ContactPayload = {
-  name: string;
-  email: string;
-  message: string;
-  locale?: string;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX = 5;
+
+type RateBucket = {
+  count: number;
+  resetAt: number;
 };
 
-function isValidEmail(email: string) {
-  // intentionally simple – we just need basic protection against garbage input
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const rateLimitStore = new Map<string, RateBucket>();
+
+function getClientIp(req: Request) {
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  return forwardedFor?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
+}
+
+function isRateLimited(key: string, now = Date.now()) {
+  const bucket = rateLimitStore.get(key);
+  if (!bucket || bucket.resetAt <= now) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  bucket.count += 1;
+  return bucket.count > RATE_LIMIT_MAX;
 }
 
 export async function POST(req: Request) {
-  let body: ContactPayload;
+  const ip = getClientIp(req);
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
+  }
+
+  let body: unknown;
   try {
-    body = (await req.json()) as ContactPayload;
+    body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const name = (body?.name ?? '').trim();
-  const email = (body?.email ?? '').trim();
-  const message = (body?.message ?? '').trim();
-  const locale = (body?.locale ?? '').trim();
-
-  if (!name || !email || !message) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-  }
-  if (!isValidEmail(email)) {
-    return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+  const validation = validateContactPayload(body);
+  if (!validation.ok) {
+    return NextResponse.json({ ok: false, error: validation.error }, { status: 400 });
   }
 
   const userAgent = req.headers.get('user-agent') ?? null;
 
-  // If Supabase env vars aren't configured yet, keep the UI flow working.
-  // We still return 200, but clearly mark it as not persisted.
-  const hasSupabaseEnv =
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-  if (!hasSupabaseEnv) {
-    return NextResponse.json({ ok: true, persisted: false }, { status: 200 });
+  if (!hasServiceSupabaseEnv()) {
+    return NextResponse.json({ ok: false, error: 'Contact storage is not configured' }, { status: 503 });
   }
 
   try {
+    const { name, email, message, locale } = validation.value;
     const supabase = createServiceSupabaseClient();
     const { error } = await supabase.from('contact_messages').insert({
       name,
       email,
       message,
-      locale: locale || null,
+      locale,
       user_agent: userAgent,
       source: 'landing',
       status: 'new',

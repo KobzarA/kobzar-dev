@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
 import { locales } from '@/lib/i18n';
+import { getSiteUrl } from '@/lib/site-url';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://kobzar.dev';
+  const baseUrl = getSiteUrl();
 
   return locales.map((locale) => ({
     url: `${baseUrl}/${locale}`,

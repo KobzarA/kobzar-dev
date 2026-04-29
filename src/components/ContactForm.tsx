@@ -2,6 +2,7 @@
 
 import { Locale } from '@/lib/i18n';
 import { Translations } from '@/lib/translations';
+import { contactLimits } from '@/lib/contact/validation';
 import { useState } from 'react';
 import { Send } from 'lucide-react';
 
@@ -38,7 +39,7 @@ export function ContactForm({ locale, t }: { locale: Locale; t: Translations }) 
         setStatus('error');
         setTimeout(() => setStatus('idle'), 5000);
       }
-    } catch (error) {
+    } catch {
       setStatus('error');
       setTimeout(() => setStatus('idle'), 5000);
     }
@@ -57,6 +58,15 @@ export function ContactForm({ locale, t }: { locale: Locale; t: Translations }) 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <input
+            type="text"
+            name="company"
+            tabIndex={-1}
+            autoComplete="off"
+            className="hidden"
+            onChange={() => undefined}
+          />
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-zinc-300 mb-2">
               {t.contactForm.name}
@@ -65,6 +75,7 @@ export function ContactForm({ locale, t }: { locale: Locale; t: Translations }) 
               type="text"
               id="name"
               required
+              maxLength={contactLimits.name}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-3 bg-black border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all"
@@ -80,6 +91,7 @@ export function ContactForm({ locale, t }: { locale: Locale; t: Translations }) 
               type="email"
               id="email"
               required
+              maxLength={contactLimits.email}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-4 py-3 bg-black border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all"
@@ -94,6 +106,7 @@ export function ContactForm({ locale, t }: { locale: Locale; t: Translations }) 
             <textarea
               id="message"
               required
+              maxLength={contactLimits.message}
               rows={6}
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}

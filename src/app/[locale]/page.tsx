@@ -15,9 +15,9 @@ import { Footer } from '@/components/Footer';
 export default async function HomePage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: { locale: string };
 }) {
-  const { locale: rawLocale } = await params;
+  const { locale: rawLocale } = params;
   const locale: Locale = locales.includes(rawLocale as Locale) ? (rawLocale as Locale) : 'en';
   const t = getTranslations(locale);
 

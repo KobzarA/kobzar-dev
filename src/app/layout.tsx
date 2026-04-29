@@ -1,4 +1,5 @@
 import '../styles/index.css';
+import { defaultLocale } from '@/lib/i18n';
 
 export default function RootLayout({
   children,
@@ -6,8 +7,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // Locale-specific <html lang> and metadata live in `src/app/[locale]/layout.tsx`.
-    <html>
+    <html lang={defaultLocale}>
       <body className="min-h-screen bg-black text-white antialiased">{children}</body>
     </html>
   );

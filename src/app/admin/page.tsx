@@ -1,19 +1,26 @@
 import Link from 'next/link';
+import { requireAdmin } from '@/lib/supabase/admin-server';
+import { LogoutButton } from './LogoutButton';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminHome() {
+  await requireAdmin('/admin');
+
   return (
     <main className="min-h-screen bg-black text-white px-6 py-10">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <h1 className="text-3xl font-semibold tracking-tight">Admin</h1>
-          <Link
-            href="/en"
-            className="text-sm text-zinc-300 hover:text-white underline underline-offset-4"
-          >
-            Back to site
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/en"
+              className="text-sm text-zinc-300 hover:text-white underline underline-offset-4"
+            >
+              Back to site
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
 
         <p className="mt-4 text-zinc-400 max-w-2xl">

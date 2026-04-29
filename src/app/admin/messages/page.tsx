@@ -1,5 +1,8 @@
 import { createServiceSupabaseClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { hasServiceSupabaseEnv } from '@/lib/supabase/admin';
+import { requireAdmin } from '@/lib/supabase/admin-server';
+import { LogoutButton } from '../LogoutButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,10 +17,9 @@ type ContactMessageRow = {
 };
 
 export default async function AdminMessagesPage() {
-  const hasSupabaseEnv =
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  await requireAdmin('/admin/messages');
 
-  if (!hasSupabaseEnv) {
+  if (!hasServiceSupabaseEnv()) {
     return (
       <main className="min-h-screen bg-black text-white px-6 py-10">
         <div className="max-w-4xl mx-auto">
@@ -70,6 +72,7 @@ export default async function AdminMessagesPage() {
             >
               Back to site
             </Link>
+            <LogoutButton />
           </div>
         </div>
 

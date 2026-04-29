@@ -1,5 +1,4 @@
--- Snapshot of the current landing contact + admin mini-CRM schema.
--- Prefer applying versioned files in supabase/migrations/ for production.
+-- Landing contact form + admin allowlist baseline.
 
 create extension if not exists "pgcrypto";
 
@@ -79,4 +78,3 @@ for update
 to authenticated
 using (private.is_admin())
 with check (private.is_admin());
-
